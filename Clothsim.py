@@ -69,7 +69,6 @@ class FabricNode:
         self.current_x = max(0, min(screen_width, self.current_x))
         self.current_y = max(0, min(screen_height, self.current_y))
 
-        # Collision with blue box
         if (obstacle_x < self.current_x < obstacle_x + obstacle_width and 
             obstacle_y < self.current_y < obstacle_y + obstacle_height):
             
@@ -91,7 +90,7 @@ class FabricNode:
             else:  
                 self.current_y = obstacle_y + obstacle_height
 
-# Connection between nodes
+
 class FabricConnection:
     def __init__(self, node1, node2):
         self.first_node = node1
@@ -111,18 +110,16 @@ class FabricConnection:
         
         if actual_distance == 0:
             return
-            
-        # Calculate how much to adjust positions
+
         adjustment = (actual_distance - self.original_length) / actual_distance
         move_x = diff_x * adjustment * 0.5
         move_y = diff_y * adjustment * 0.5
-        
-        # Apply to first node if not being interacted with
+
         if not self.first_node.being_dragged and not self.first_node.is_anchored:
             self.first_node.current_x += move_x
             self.first_node.current_y += move_y
             
-        # Apply to second node if not being interacted with
+
         if not self.second_node.being_dragged and not self.second_node.is_anchored:
             self.second_node.current_x -= move_x
             self.second_node.current_y -= move_y
@@ -136,25 +133,25 @@ def setup_fabric():
     all_nodes = []
     all_connections = []
     
-    # Create grid of nodes
+
     for row in range(grid_columns_rows):
         for col in range(grid_columns_rows):
             node_x = col * distance_between_nodes + (screen_width - grid_columns_rows*distance_between_nodes)//2
             node_y = row * distance_between_nodes + 50
             all_nodes.append(FabricNode(node_x, node_y))
 
-    # Connect nodes horizontally and vertically
+
     for row in range(grid_columns_rows):
         for col in range(grid_columns_rows):
             current_index = row * grid_columns_rows + col
-            if col < grid_columns_rows - 1:  # Horizontal connection
+            if col < grid_columns_rows - 1:  
                 all_connections.append(FabricConnection(all_nodes[current_index], all_nodes[current_index + 1]))
-            if row < grid_columns_rows - 1:  # Vertical connection
+            if row < grid_columns_rows - 1: 
                 all_connections.append(FabricConnection(all_nodes[current_index], all_nodes[current_index + grid_columns_rows]))
 
 setup_fabric()
 
-# Interaction variables
+
 selected_node = None
 cutting_mode = False
 ui_font = pygame.font.SysFont('Arial', 16)
@@ -184,7 +181,6 @@ def find_nearby_connection(click_x, click_y, max_distance=15):
         if line_length == 0:
             continue
             
-        # Find closest point on the connection line
         t = ((click_x - x1) * (x2 - x1) + (click_y - y1) * (y2 - y1)) / (line_length ** 2)
         t = max(0, min(1, t))
         closest_x = x1 + t * (x2 - x1)
@@ -207,7 +203,6 @@ def draw_ui_button(button_rect, base_color, highlight_color, label, text_color=W
     
     return is_hovered
 
-# Main simulation loop
 simulation_running = True
 frame_timer = pygame.time.Clock()
 
@@ -219,24 +214,24 @@ while simulation_running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos_x, mouse_pos_y = pygame.mouse.get_pos()
             
-            if event.button == 1:  # Left click
-                # Check UI buttons first
+            if event.button == 1:  
+
                 if cut_fabric_button.collidepoint(mouse_pos_x, mouse_pos_y):
                     cutting_mode = not cutting_mode
                 elif reset_fabric_button.collidepoint(mouse_pos_x, mouse_pos_y):
                     setup_fabric()
                     cutting_mode = False
-                elif cutting_mode:  # Cut connections
+                elif cutting_mode:  
                     connection = find_nearby_connection(mouse_pos_x, mouse_pos_y)
                     if connection:
                         connection.is_connected = False
-                else:  # Drag nodes
+                else:  
                     node = find_closest_node(mouse_pos_x, mouse_pos_y)
                     if node:
                         selected_node = node
                         selected_node.being_dragged = True
                         
-            elif event.button == 3:  # Right click to anchor nodes
+            elif event.button == 3: 
                 node = find_closest_node(mouse_pos_x, mouse_pos_y)
                 if node:
                     if math.dist((mouse_pos_x, mouse_pos_y), (left_anchor_x, left_anchor_y)) < nail_size:
@@ -246,7 +241,7 @@ while simulation_running:
                         
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1 and selected_node:
-                # When releasing a dragged node, set its velocity
+              
                 selected_node.previous_x = selected_node.current_x - (pygame.mouse.get_pos()[0] - selected_node.current_x)
                 selected_node.previous_y = selected_node.current_y - (pygame.mouse.get_pos()[1] - selected_node.current_y)
                 selected_node.being_dragged = False
@@ -275,7 +270,7 @@ while simulation_running:
     pygame.draw.circle(main_window, BRASS_COLOR, (left_anchor_x, left_anchor_y), nail_size)
     pygame.draw.circle(main_window, BRASS_COLOR, (right_anchor_x, right_anchor_y), nail_size)
     
-    # Draw fabric connections
+  
     for connection in all_connections:
         if connection.is_connected:
             pygame.draw.line(
@@ -284,7 +279,6 @@ while simulation_running:
                 (connection.second_node.current_x, connection.second_node.current_y), 
                 1)
     
-    # Draw nodes
     for node in all_nodes:
         if node.is_anchored:
             node_color = BRASS_COLOR
@@ -294,7 +288,7 @@ while simulation_running:
             node_color = WHITE_COLOR
         pygame.draw.circle(main_window, node_color, (int(node.current_x), int(node.current_y)), node_size)
     
-    # Draw UI controls
+
     cut_button_state = draw_ui_button(
         cut_fabric_button, 
         GREEN_COLOR if cutting_mode else DARK_GREEN_COLOR,
