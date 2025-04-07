@@ -7,8 +7,13 @@ Cloth Simulation Playground is an interactive simulation that demonstrates cloth
 ## Controls Reference
 
 Action	Control
+
 Drag fabric point	Left-click and hold
+
 Pin point to anchor	Right-click point then click anchor
+
 Toggle cut mode	Click "Cut Fabric" button
+
 Cut a connection	In cut mode, click on a thread
+
 Reset simulation	Click "Reset Fabric" button
